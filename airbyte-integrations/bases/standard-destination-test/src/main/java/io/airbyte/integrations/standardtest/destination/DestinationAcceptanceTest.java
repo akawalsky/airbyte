@@ -57,6 +57,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1016,12 +1017,14 @@ public abstract class DestinationAcceptanceTest {
         .map(AirbyteMessage::getRecord)
         .peek(recordMessage -> recordMessage.setEmittedAt(null))
         .map(recordMessage -> pruneAirbyteInternalFields ? safePrune(recordMessage) : recordMessage)
-        .map(recordMessage -> recordMessage.getData())
+        .map(AirbyteRecordMessage::getData)
+        .sorted(Comparator.comparing(JsonNode::asText))
         .collect(Collectors.toList());
 
     final List<JsonNode> actualProcessed = actual.stream()
         .map(recordMessage -> pruneAirbyteInternalFields ? safePrune(recordMessage) : recordMessage)
-        .map(recordMessage -> recordMessage.getData())
+        .map(AirbyteRecordMessage::getData)
+        .sorted(Comparator.comparing(JsonNode::asText))
         .collect(Collectors.toList());
 
     assertSameData(expectedProcessed, actualProcessed);
